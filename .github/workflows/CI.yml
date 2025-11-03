@@ -1,0 +1,12 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+jobs:
+  just-a-ping:
+    runs-on: self-hosted
+    steps:
+      - name: Say hello
+        run: echo "Runner is alive. Baby step CI passed."
