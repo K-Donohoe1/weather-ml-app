@@ -21,5 +21,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Verify install
-        run: python -c "import flask; print('Flask imported successfully')"
+      - name: Smoke tests
+        run: python -m unittest -v tests/smoke_test.py
+      - name: Unit tests
+        run: python -m unittest -v tests/unit_test.py
+      - name: Integration tests
+        run: python -m unittest -v tests/integration_test.py
+
+      - name: Build Docker image
+        run: docker build -t weather-ml-app:${{ github.sha }} .
+
+      - name: Run container health check
+        run: |
+          cid=$(docker run -d -p 5000:5000 weather-ml-app:${{ github.sha }})
+          sleep 5
+          curl -f http://127.0.0.1:5000/ || (docker logs "$cid" && exit 1)
+          docker rm -f "$cid"
