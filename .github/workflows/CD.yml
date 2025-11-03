@@ -33,10 +33,13 @@ jobs:
       - name: Deploy to Kubernetes (minikube)
         run: |
           kubectl config use-context minikube
-          sed -i "s#docker.io/.*/weather-ml-app:.*#docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
+          # Robustly replace the image line that references weather-ml-app, regardless of current user/tag
+          sed -E -i "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
+          echo '--- DEPLOYMENT AFTER REWRITE ---'
+          grep -n 'image:' -n k8s/deployment.yaml || true
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
-          kubectl rollout status deploy/weather-ml --timeout=180s
+          kubectl rollout status deploy/weather-ml-app --timeout=180s
 
       - name: Show cluster state
         run: |
