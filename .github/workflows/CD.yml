@@ -5,9 +5,39 @@ on:
     types: [ completed ]
 
 jobs:
-  cd-skeleton:
+  deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: self-hosted
     steps:
-      - name: Prove CD runner works
-        run: echo "CD runner alive after CI success"
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${{ env.IMAGE_TAG }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:latest
+
+      - name: Deploy to Kubernetes (minikube)
+        run: |
+          kubectl config use-context minikube
+          sed -i "s#docker.io/.*/weather-ml-app:.*#docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+          kubectl rollout status deploy/weather-ml --timeout=180s
+
+      - name: Show cluster state
+        run: |
+          kubectl get deploy,po,svc -o wide
