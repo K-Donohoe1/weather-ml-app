@@ -5,8 +5,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  just-a-ping:
+  test-and-build:
     runs-on: self-hosted
     steps:
-      - name: Say hello
-        run: echo "Runner is alive. Baby step CI passed."
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Verify install
+        run: python -c "import flask; print('Flask imported successfully')"
