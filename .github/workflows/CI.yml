@@ -19,11 +19,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Smoke tests
-        run: python -m unittest -v tests/smoke_test.py
+        run: python -m unittest -v tests/test_smoke.py
       - name: Unit tests
-        run: python -m unittest -v tests/unit_test.py
+        run: python -m unittest -v tests/test_unit.py
       - name: Integration tests
-        run: python -m unittest -v tests/integration_test.py
+        run: python -m unittest -v tests/test_integration.py
       - name: Build Docker image
         run: docker build -t weather-ml-app:${{ github.sha }} .
       - name: Run container health check
