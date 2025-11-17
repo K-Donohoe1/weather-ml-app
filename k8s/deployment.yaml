@@ -22,7 +22,7 @@ spec:
       containers:
       - name: weather-ml-app
         # CD.yml will replace this line to point to your Docker Hub user + SHA tag
-        image: docker.io/PLACEHOLDER/weather-ml-app:latest
+        image: docker.io/kdonohoe1/weather-ml-app:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
