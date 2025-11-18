@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ubuntu-latest   # Using GitHub-hosted runner for ease of kubectl setup
+    runs-on: self-hosted  # This matches your AWS Ubuntu runner label
 
     steps:
       - name: Checkout repository
@@ -17,36 +17,35 @@ jobs:
       - name: Set image tag
         run: echo "IMAGE_TAG=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
 
+      - name: Ensure Docker is running
+        run: sudo systemctl start docker
+
+      - name: Ensure Minikube is running
+        run: |
+          minikube status || minikube start --driver=docker
+
+      - name: Wait for Kubernetes API
+        run: |
+          for i in {1..20}; do
+            kubectl get nodes && break
+            echo "Waiting for Kubernetes API... (${i}/20)"; sleep 6;
+          done
+
+      - name: Set kubectl context (just in case)
+        run: kubectl config use-context minikube
+
       - name: Docker login
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${{ env.IMAGE_TAG }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:latest
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'latest'
-
-      - name: Configure kubeconfig
+      - name: Update deployment.yaml with new image tag
         run: |
-          mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > $HOME/.kube/config
+          sed -Ei "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
 
-      - name: Deploy to Kubernetes (minikube)
+      - name: Deploy to Kubernetes (Minikube)
         run: |
-          kubectl config use-context minikube
-          # Update image tag in deployment manifest
-          sed -E -i "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
           echo '--- DEPLOYMENT AFTER REWRITE ---'
           grep -n 'image:' k8s/deployment.yaml || true
           kubectl apply -f k8s/deployment.yaml
