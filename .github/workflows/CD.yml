@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted  # This matches your AWS Ubuntu runner label
+    runs-on: self-hosted   # Your AWS Ubuntu runner
 
     steps:
       - name: Checkout repository
@@ -40,16 +40,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Update deployment.yaml with new image tag
+      - name: Update app_deployment.yaml with new image tag
         run: |
-          sed -Ei "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
+          sed -Ei "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/app_deployment.yaml
 
       - name: Deploy to Kubernetes (Minikube)
         run: |
           echo '--- DEPLOYMENT AFTER REWRITE ---'
-          grep -n 'image:' k8s/deployment.yaml || true
+          grep -n 'image:' k8s/app_deployment.yaml || true
           kubectl apply -f k8s/app_deployment.yaml
-          kubectl apply -f k8s/create_service.yaml
+          kubectl apply -f k8s/service.yaml
           kubectl rollout status deployment/weather-ml-app --timeout=180s
 
       - name: Show cluster state
