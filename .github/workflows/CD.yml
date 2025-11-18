@@ -48,8 +48,8 @@ jobs:
         run: |
           echo '--- DEPLOYMENT AFTER REWRITE ---'
           grep -n 'image:' k8s/deployment.yaml || true
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/app-deployment.yaml
+          kubectl apply -f k8s/create_service.yaml
           kubectl rollout status deployment/weather-ml-app --timeout=180s
 
       - name: Show cluster state
