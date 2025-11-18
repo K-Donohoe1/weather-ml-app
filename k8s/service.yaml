@@ -5,11 +5,12 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: weather-ml-app
+    app: weather-ml
   ports:
     - port: 80
-      targetPort: 5000
-      nodePort: 30007
-      protocol: TCP
+      targetPort: 80
+      nodePort: 5000
+
+
 
 
