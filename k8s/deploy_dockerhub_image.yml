@@ -1,0 +1,23 @@
+- name: Deploy DockerHub image to Kubernetes
+  hosts: localhost
+  become: no
+  remote_user: ubuntu
+
+  vars:
+    deployment_path: /home/ubuntu/app-deployment.yaml
+
+  tasks:
+    - name: Copy deployment YAML to server
+      copy:
+        src: app_deployment.yaml
+        dest: "{{ deployment_path }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Deploy weather-mp-app to Kubernetes
+      shell: kubectl apply -f {{ deployment_path }}
+      register: apply_result
+
+    - name: Show deployment output
+      debug:
+        var: apply_result.stdout

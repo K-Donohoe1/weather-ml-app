@@ -1,0 +1,24 @@
+- name: Install kubectl
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Get latest kubectl version
+      shell: curl -L -s https://dl.k8s.io/release/stable.txt
+      register: kubectl_version
+      changed_when: false
+
+    - name: Download the latest release of kubectl
+      get_url:
+        url: "https://dl.k8s.io/release/{{ kubectl_version.stdout }}/bin/linux/amd64/kubectl"
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Verify kubectl installation
+      shell: kubectl version --client
+      register: kubectl_version_check
+
+    - name: Show kubectl version output
+      debug:
+        var: kubectl_version_check.stdout
+

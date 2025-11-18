@@ -1,0 +1,13 @@
+- name: Create Application Service
+  hosts: localhost
+  become: no
+  remote_user: ubuntu
+
+  tasks:
+    - name: Create Nodeport Service for weather-ml-app
+      shell: kubectl expose deployment weather-ml-app --type=NodePort --port=5000 --name=weather-ml-service
+      register: expose_result
+
+    - name: Show service creation output
+      debug:
+        var: expose_result.stdout

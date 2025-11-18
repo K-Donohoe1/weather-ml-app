@@ -1,0 +1,13 @@
+- name: Scale weather-ml-app deployment for rolling updates
+  hosts: localhost
+  become: no
+  remote_user: ubuntu
+
+  tasks:
+    - name: Scale deployment to 3 replicas
+      shell: kubectl scale deployment weather-ml-app --replicas=3
+      register: scale_result
+
+    - name: Show scaling output
+      debug:
+        var: scale_result.stdout
