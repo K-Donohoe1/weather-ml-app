@@ -22,7 +22,7 @@ jobs:
 
       - name: Ensure Minikube is running
         run: |
-          minikube status || minikube start --driver=none
+          minikube status || minikube start --driver=docker
 
       - name: Wait for Kubernetes API
         run: |
