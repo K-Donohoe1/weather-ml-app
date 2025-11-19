@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: self-hosted   
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -40,9 +40,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Update app_deployment.yaml with new image tag
+      - name: Build and push Docker image to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${{ env.IMAGE_TAG }}
+
+      - name: Update deployment.yaml with new image tag
         run: |
-          sed -Ei "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/app_deployment.yaml
+          sed -Ei "s#(image:\s*)docker\.io/.*/weather-ml-app:.*#\1docker.io/${{ secrets.DOCKERHUB_USERNAME }}/weather-ml-app:${IMAGE_TAG}#g" k8s/deployment.yaml
 
       - name: Deploy to Kubernetes (Minikube)
         run: |
