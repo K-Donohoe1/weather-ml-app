@@ -47,8 +47,8 @@ jobs:
       - name: Deploy to Kubernetes (Minikube)
         run: |
           echo '--- DEPLOYMENT AFTER REWRITE ---'
-          grep -n 'image:' k8s/app_deployment.yaml || true
-          kubectl apply -f k8s/app_deployment.yaml
+          grep -n 'image:' k8s/deployment.yaml || true
+          kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl rollout status deployment/weather-ml-app --timeout=180s
 
