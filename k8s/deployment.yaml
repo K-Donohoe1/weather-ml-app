@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: weather-ml-app
-        image: docker.io/kdonohoe1/weather-ml-app:v1
+        image: docker.io/kdonohoe1/weather-ml-app:v1 #this line
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
