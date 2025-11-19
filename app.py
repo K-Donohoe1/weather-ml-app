@@ -5,7 +5,7 @@ import time
 
 app = Flask(__name__)
 
-weather_classes = ['clear', 'foggy', 'drizzly', 'cloudy', 'hazey', 'misty', 'rain', 'smokey', 'thunderstorm'] #this line
+weather_classes = ['clear', 'foggy', 'drizzly', 'cloudy', 'hazey', 'misty', 'rainy', 'smokey', 'thunderstorm'] #this line
 
 def load_model(model_path = 'model/model.pkl'):
 	return pickle.load(open(model_path, 'rb'))
